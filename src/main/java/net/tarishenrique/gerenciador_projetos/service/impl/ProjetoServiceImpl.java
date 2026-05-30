@@ -4,8 +4,10 @@ import net.tarishenrique.gerenciador_projetos.dto.MembroResponseDTO;
 import net.tarishenrique.gerenciador_projetos.dto.ProjetoRequestDTO;
 import net.tarishenrique.gerenciador_projetos.dto.ProjetoResponseDTO;
 import net.tarishenrique.gerenciador_projetos.exception.GerenteNaoEncontradoException;
+import net.tarishenrique.gerenciador_projetos.exception.StatusInvalidoExcpetion;
 import net.tarishenrique.gerenciador_projetos.mapper.ProjetoMapper;
 import net.tarishenrique.gerenciador_projetos.model.Projeto;
+import net.tarishenrique.gerenciador_projetos.model.StatusProjeto;
 import net.tarishenrique.gerenciador_projetos.repository.ProjetoRepository;
 import net.tarishenrique.gerenciador_projetos.service.APIClient;
 import net.tarishenrique.gerenciador_projetos.service.ProjetoService;
@@ -38,6 +40,10 @@ public class ProjetoServiceImpl implements ProjetoService {
                 || membroResponseDTO.membroId() == null
                 || !"gerente".equalsIgnoreCase(membroResponseDTO.cargo())) {
             throw new GerenteNaoEncontradoException(projeto.getGerenteId());
+        }
+
+        if(!StatusProjeto.EM_ANALISE.name().equals(projeto.getStatus().name())){
+            throw new StatusInvalidoExcpetion(projeto.getStatus().name());
         }
 
         Projeto projetoSalvo = repository.save(projeto);
