@@ -35,7 +35,7 @@ public class Projeto {
 
     private String descricao;
 
-    private Long gerente;
+    private Long gerenteId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

@@ -13,7 +13,7 @@ public record ProjetoResponseDTO(
         LocalDate dataFimReal,
         BigDecimal orcamentoTotal,
         String descricao,
-        GerenteResponseDTO gerente,
+        MembroResponseDTO gerente,
         StatusProjeto status
 ) {
 }
