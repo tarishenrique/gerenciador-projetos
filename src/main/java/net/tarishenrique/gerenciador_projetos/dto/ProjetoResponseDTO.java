@@ -6,14 +6,14 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record ProjetoResponseDTO(
-        Long id,
+        Long projetoId,
         String nome,
         LocalDate dataInicio,
         LocalDate previsaoTermino,
         LocalDate dataFimReal,
         BigDecimal orcamentoTotal,
         String descricao,
-        MembroResponseDTO gerente,
+        Long gerenteId,
         StatusProjeto status
 ) {
 }
