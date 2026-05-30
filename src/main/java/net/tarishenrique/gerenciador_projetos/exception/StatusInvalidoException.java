@@ -1,8 +1,8 @@
 package net.tarishenrique.gerenciador_projetos.exception;
 
-public class StatusInvalidoExcpetion extends RuntimeException {
+public class StatusInvalidoException extends RuntimeException {
 
-    public StatusInvalidoExcpetion(String status) {
+    public StatusInvalidoException(String status) {
         super("Status de Projeto inválido: Status = " + status);
     }
 }
