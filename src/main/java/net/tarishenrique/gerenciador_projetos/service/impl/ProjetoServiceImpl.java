@@ -4,6 +4,7 @@ import net.tarishenrique.gerenciador_projetos.dto.MembroResponseDTO;
 import net.tarishenrique.gerenciador_projetos.dto.ProjetoRequestDTO;
 import net.tarishenrique.gerenciador_projetos.dto.ProjetoResponseDTO;
 import net.tarishenrique.gerenciador_projetos.exception.GerenteNaoEncontradoException;
+import net.tarishenrique.gerenciador_projetos.exception.ProjetoComStatusNaoExcluir;
 import net.tarishenrique.gerenciador_projetos.exception.ProjetoNaoEncontradoException;
 import net.tarishenrique.gerenciador_projetos.exception.StatusInvalidoException;
 import net.tarishenrique.gerenciador_projetos.mapper.ProjetoMapper;
@@ -78,15 +79,28 @@ public class ProjetoServiceImpl implements ProjetoService {
 
         int statusId = projetoRequestDTO.status().getOrdem();
 
-        if (statusId != projetoSalvo.getStatus().getOrdem() && statusId != (projetoSalvo.getStatus().getOrdem() + 1)){
+        if (statusId != StatusProjeto.CANCELADO.getOrdem() &&
+                statusId != projetoSalvo.getStatus().getOrdem() &&
+                statusId != (projetoSalvo.getStatus().getOrdem() + 1)) {
             throw new StatusInvalidoException(String.valueOf(statusId));
         }
 
-        return null;
+        projetoMapper.updateEntityFromDto(projetoRequestDTO, projetoSalvo);
+        Projeto projetoAtualizado = repository.save(projetoSalvo);
+        return projetoMapper.toDto(projetoAtualizado);
     }
 
     @Override
     public void deletar(Long projetoId) {
+        Projeto projeto = repository.findById(projetoId)
+                .orElseThrow(() -> new ProjetoNaoEncontradoException(projetoId));
 
+        if (projeto.getStatus() == StatusProjeto.INICIADO ||
+            projeto.getStatus() == StatusProjeto.EM_ANDAMENTO ||
+            projeto.getStatus() == StatusProjeto.ENCERRADO){
+            throw new ProjetoComStatusNaoExcluir(projeto.getStatus().name());
+        }
+
+        repository.delete(projeto);
     }
 }
