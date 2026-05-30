@@ -1,8 +1,8 @@
 package net.tarishenrique.gerenciador_projetos.dto;
 
 public record MembroResponseDTO(
-        Long id,
+        Long membroId,
         String nome,
-        String atribuicao
+        String cargo
 ) {
 }
