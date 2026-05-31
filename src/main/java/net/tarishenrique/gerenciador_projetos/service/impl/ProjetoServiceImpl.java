@@ -23,27 +23,23 @@ public class ProjetoServiceImpl implements ProjetoService {
     private final ProjetoRepository repository;
     private final APIClient apiClient;
     private final ProjetoMapper projetoMapper;
+    private final MembroServiceImpl membroServiceImpl;
 
     public ProjetoServiceImpl(
             ProjetoRepository repository,
             APIClient apiClient,
-            ProjetoMapper projetoMapper) {
+            ProjetoMapper projetoMapper, MembroServiceImpl membroServiceImpl) {
         this.repository = repository;
         this.apiClient = apiClient;
         this.projetoMapper = projetoMapper;
+        this.membroServiceImpl = membroServiceImpl;
     }
 
     @Override
     public ProjetoResponseDTO salvar(ProjetoRequestDTO projetoRequestDTO) {
         Projeto projeto = projetoMapper.toEntity(projetoRequestDTO);
 
-        MembroResponseDTO membroResponseDTO = apiClient.getMembroById(projeto.getGerenteId());
-
-        if (membroResponseDTO == null
-                || membroResponseDTO.membroId() == null
-                || !"gerente".equalsIgnoreCase(membroResponseDTO.cargo())) {
-            throw new GerenteNaoEncontradoException(projeto.getGerenteId());
-        }
+        membroServiceImpl.validarGerente(projeto.getGerenteId());
 
         if (!StatusProjeto.EM_ANALISE.name().equals(projeto.getStatus().name())) {
             throw new StatusInvalidoException(projeto.getStatus().name());
