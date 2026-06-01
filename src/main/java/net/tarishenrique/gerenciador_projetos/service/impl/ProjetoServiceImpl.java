@@ -1,9 +1,7 @@
 package net.tarishenrique.gerenciador_projetos.service.impl;
 
-import net.tarishenrique.gerenciador_projetos.dto.MembroResponseDTO;
 import net.tarishenrique.gerenciador_projetos.dto.ProjetoRequestDTO;
 import net.tarishenrique.gerenciador_projetos.dto.ProjetoResponseDTO;
-import net.tarishenrique.gerenciador_projetos.exception.GerenteNaoEncontradoException;
 import net.tarishenrique.gerenciador_projetos.exception.ProjetoComStatusNaoExcluir;
 import net.tarishenrique.gerenciador_projetos.exception.ProjetoNaoEncontradoException;
 import net.tarishenrique.gerenciador_projetos.exception.StatusInvalidoException;
@@ -11,9 +9,10 @@ import net.tarishenrique.gerenciador_projetos.mapper.ProjetoMapper;
 import net.tarishenrique.gerenciador_projetos.model.Projeto;
 import net.tarishenrique.gerenciador_projetos.model.StatusProjeto;
 import net.tarishenrique.gerenciador_projetos.repository.ProjetoRepository;
-import net.tarishenrique.gerenciador_projetos.service.APIClient;
+import net.tarishenrique.gerenciador_projetos.service.MembroService;
 import net.tarishenrique.gerenciador_projetos.service.ProjetoService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -21,27 +20,26 @@ import java.util.List;
 public class ProjetoServiceImpl implements ProjetoService {
 
     private final ProjetoRepository repository;
-    private final APIClient apiClient;
     private final ProjetoMapper projetoMapper;
-    private final MembroServiceImpl membroServiceImpl;
+    private final MembroService membroService;
 
     public ProjetoServiceImpl(
             ProjetoRepository repository,
-            APIClient apiClient,
-            ProjetoMapper projetoMapper, MembroServiceImpl membroServiceImpl) {
+            ProjetoMapper projetoMapper,
+            MembroService membroService) {
         this.repository = repository;
-        this.apiClient = apiClient;
         this.projetoMapper = projetoMapper;
-        this.membroServiceImpl = membroServiceImpl;
+        this.membroService = membroService;
     }
 
+    @Transactional
     @Override
     public ProjetoResponseDTO salvar(ProjetoRequestDTO projetoRequestDTO) {
         Projeto projeto = projetoMapper.toEntity(projetoRequestDTO);
 
-        membroServiceImpl.validarGerente(projeto.getGerenteId());
+        membroService.validarGerente(projeto.getGerenteId());
 
-        if (!StatusProjeto.EM_ANALISE.name().equals(projeto.getStatus().name())) {
+        if (projeto.getStatus() != StatusProjeto.EM_ANALISE) {
             throw new StatusInvalidoException(projeto.getStatus().name());
         }
 
@@ -52,12 +50,11 @@ public class ProjetoServiceImpl implements ProjetoService {
 
     @Override
     public List<ProjetoResponseDTO> listar() {
-        List<ProjetoResponseDTO> projetos = repository.findAll()
+
+        return repository.findAll()
                 .stream()
                 .map(projetoMapper::toDto)
                 .toList();
-
-        return projetos;
     }
 
     @Override
@@ -67,18 +64,15 @@ public class ProjetoServiceImpl implements ProjetoService {
         return projetoMapper.toDto(projeto);
     }
 
+    @Transactional
     @Override
     public ProjetoResponseDTO atualizar(Long projetoId, ProjetoRequestDTO projetoRequestDTO) {
 
         Projeto projetoSalvo = repository.findById(projetoId)
                 .orElseThrow(() -> new ProjetoNaoEncontradoException(projetoId));
 
-        int statusId = projetoRequestDTO.status().getOrdem();
-
-        if (statusId != StatusProjeto.CANCELADO.getOrdem() &&
-                statusId != projetoSalvo.getStatus().getOrdem() &&
-                statusId != (projetoSalvo.getStatus().getOrdem() + 1)) {
-            throw new StatusInvalidoException(String.valueOf(statusId));
+        if (!projetoSalvo.getStatus().podeAlterarStatus(projetoRequestDTO.status())) {
+            throw new StatusInvalidoException(projetoRequestDTO.status().name());
         }
 
         projetoMapper.updateEntityFromDto(projetoRequestDTO, projetoSalvo);
@@ -86,17 +80,18 @@ public class ProjetoServiceImpl implements ProjetoService {
         return projetoMapper.toDto(projetoAtualizado);
     }
 
+    @Transactional
     @Override
     public void deletar(Long projetoId) {
         Projeto projeto = repository.findById(projetoId)
                 .orElseThrow(() -> new ProjetoNaoEncontradoException(projetoId));
 
-        if (projeto.getStatus() == StatusProjeto.INICIADO ||
-            projeto.getStatus() == StatusProjeto.EM_ANDAMENTO ||
-            projeto.getStatus() == StatusProjeto.ENCERRADO){
+        if (!projeto.getStatus().podeSerExcluido()){
             throw new ProjetoComStatusNaoExcluir(projeto.getStatus().name());
         }
 
         repository.delete(projeto);
     }
+
+
 }

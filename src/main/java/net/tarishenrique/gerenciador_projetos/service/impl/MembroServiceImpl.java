@@ -26,7 +26,7 @@ public class MembroServiceImpl implements MembroService {
         try {
             MembroResponseDTO membro = apiClient.getMembroById(gerenteId);
 
-            if (membro == null || membro.membroId() == null || "gerente".equalsIgnoreCase(membro.cargo())){
+            if (membro == null || membro.membroId() == null || !"gerente".equalsIgnoreCase(membro.cargo())){
                 throw new GerenteNaoEncontradoException(gerenteId);
             }
         } catch (FeignException.NotFound e){

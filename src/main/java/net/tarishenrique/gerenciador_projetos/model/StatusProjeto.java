@@ -19,4 +19,14 @@ public enum StatusProjeto {
     public int getOrdem() {
         return ordem;
     }
+
+    public boolean podeAlterarStatus(StatusProjeto proximo) {
+        return proximo == CANCELADO
+                || proximo.ordem == this.ordem
+                || proximo.ordem == this.ordem + 1;
+    }
+
+    public boolean podeSerExcluido() {
+        return this != INICIADO && this != EM_ANDAMENTO && this != ENCERRADO;
+    }
 }
