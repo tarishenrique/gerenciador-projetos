@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import net.tarishenrique.gerenciador_projetos.dto.ProjetoRequestDTO;
 import net.tarishenrique.gerenciador_projetos.dto.ProjetoResponseDTO;
 import net.tarishenrique.gerenciador_projetos.service.ProjetoService;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -46,7 +47,7 @@ public class ProjetoController {
             @ApiResponse(responseCode = "500", description = "Erro ao listar projetos")
     })
     @GetMapping
-    public ResponseEntity<Page<ProjetoResponseDTO>> listar(Pageable pageable) {
+    public ResponseEntity<Page<ProjetoResponseDTO>> listar(@ParameterObject Pageable pageable) {
 
         Page<ProjetoResponseDTO> projetos = projetoService.listar(pageable);
         return ResponseEntity.ok(projetos);
