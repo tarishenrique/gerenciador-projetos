@@ -11,6 +11,8 @@ import net.tarishenrique.gerenciador_projetos.model.StatusProjeto;
 import net.tarishenrique.gerenciador_projetos.repository.ProjetoRepository;
 import net.tarishenrique.gerenciador_projetos.service.MembroService;
 import net.tarishenrique.gerenciador_projetos.service.ProjetoService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,12 +51,10 @@ public class ProjetoServiceImpl implements ProjetoService {
     }
 
     @Override
-    public List<ProjetoResponseDTO> listar() {
+    public Page<ProjetoResponseDTO> listar(Pageable pageable) {
 
-        return repository.findAll()
-                .stream()
-                .map(projetoMapper::toDto)
-                .toList();
+        return repository.findAll(pageable)
+                .map(projetoMapper::toDto);
     }
 
     @Override
